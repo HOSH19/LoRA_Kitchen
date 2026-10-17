@@ -10,11 +10,21 @@ Use two pods if you want a clean story: one to train adapters, one to serve them
 
 ```bash
 pip install -r requirements-train.txt
-python scripts/generate_dataset.py
 bash scripts/train_all.sh
 ```
 
+If you hit `libcudart.so.13` / `torchaudio` import errors, the pod’s CUDA runtime does not match a CUDA-13 torchaudio wheel. This project is text-only; remove it and retry:
+
+```bash
+pip uninstall -y torchaudio
+bash scripts/train_all.sh
+```
+
+`train_all.sh` now runs `scripts/prepare_train_env.sh`, which uninstalls `torchaudio` automatically.
+
 4. Download `adapters/flame`, `adapters/butter`, and `adapters/chaos` to your laptop or object storage.
+
+Training does **not** install `vllm` (serve via the Docker image instead). For the offline multi-LoRA script on the same pod, install vLLM separately only when you need it.
 
 ## 2. Serve pod
 
