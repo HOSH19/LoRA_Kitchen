@@ -27,12 +27,22 @@ def load_base_model(cfg: TrainConfig) -> AutoModelForCausalLM:
             bnb_4bit_compute_dtype=torch.bfloat16,
             bnb_4bit_use_double_quant=True,
         )
-    model = AutoModelForCausalLM.from_pretrained(
-        cfg.base_model,
-        quantization_config=quant,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-    )
+    load_kwargs = {
+        "device_map": "auto",
+        "quantization_config": quant,
+    }
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            cfg.base_model,
+            dtype=torch.bfloat16,
+            **load_kwargs,
+        )
+    except TypeError:
+        model = AutoModelForCausalLM.from_pretrained(
+            cfg.base_model,
+            torch_dtype=torch.bfloat16,
+            **load_kwargs,
+        )
     model.config.use_cache = False
     return model
 

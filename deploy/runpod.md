@@ -22,6 +22,13 @@ bash scripts/train_all.sh
 
 `train_all.sh` now runs `scripts/prepare_train_env.sh`, which uninstalls `torchaudio` automatically.
 
+If QLoRA fails with a `bitsandbytes` version error:
+
+```bash
+pip install -U 'bitsandbytes>=0.46.1'
+bash scripts/train_all.sh
+```
+
 4. Download `adapters/flame`, `adapters/butter`, and `adapters/chaos` to your laptop or object storage.
 
 Training does **not** install `vllm` (serve via the Docker image instead). For the offline multi-LoRA script on the same pod, install vLLM separately only when you need it.
