@@ -13,10 +13,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from datasets import load_dataset
-from trl import SFTConfig, SFTTrainer
 
 from train.config_load import TrainConfig, load_train_config
 from train.model_factory import attach_lora, load_base_model, load_tokenizer
+from train.sft_args import build_sft_config, build_sft_trainer
 
 
 def parse_args() -> argparse.Namespace:
@@ -54,30 +54,18 @@ def make_formatting_func(tokenizer):
     return _format
 
 
-def build_trainer(cfg: TrainConfig) -> SFTTrainer:
+def build_trainer(cfg: TrainConfig):
     """Assemble tokenizer, model, datasets, and TRL trainer."""
     tokenizer = load_tokenizer(cfg.base_model)
     model = attach_lora(load_base_model(cfg), cfg)
     dataset = load_splits(cfg)
-    sft_args = SFTConfig(
-        output_dir=str(ROOT / cfg.output_dir),
-        max_steps=cfg.max_steps,
-        per_device_train_batch_size=cfg.batch_size,
-        gradient_accumulation_steps=cfg.grad_accum,
-        learning_rate=cfg.learning_rate,
-        logging_steps=10,
-        save_steps=cfg.max_steps,
-        eval_strategy="no",
-        bf16=True,
-        report_to=[],
-        max_seq_length=cfg.max_seq_len,
-        packing=False,
-    )
-    return SFTTrainer(
+    resolved = cfg.model_copy(update={"output_dir": str(ROOT / cfg.output_dir)})
+    sft_args = build_sft_config(resolved)
+    return build_sft_trainer(
         model=model,
-        args=sft_args,
+        tokenizer=tokenizer,
         train_dataset=dataset["train"],
-        processing_class=tokenizer,
+        sft_args=sft_args,
         formatting_func=make_formatting_func(tokenizer),
     )
 
@@ -91,7 +79,7 @@ def main() -> None:
     out = ROOT / cfg.output_dir
     out.mkdir(parents=True, exist_ok=True)
     trainer.model.save_pretrained(out)
-    tokenizer = trainer.processing_class
+    tokenizer = getattr(trainer, "processing_class", None) or trainer.tokenizer
     tokenizer.save_pretrained(out)
     print(f"Saved LoRA adapter to {out}")
 
