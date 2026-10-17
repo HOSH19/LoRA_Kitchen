@@ -26,14 +26,27 @@ if [[ ${#LORAS[@]} -eq 0 ]]; then
   exit 1
 fi
 
-exec vllm serve "${BASE_MODEL}" \
-  --host "${HOST}" \
-  --port "${PORT}" \
-  --enable-lora \
-  --max-loras "${MAX_LORAS}" \
-  --max-lora-rank "${MAX_LORA_RANK}" \
-  --enable-prefix-caching \
-  --max-model-len "${MAX_MODEL_LEN}" \
-  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}" \
-  --trust-remote-code \
+COMMON=(
+  --host "${HOST}"
+  --port "${PORT}"
+  --enable-lora
+  --max-loras "${MAX_LORAS}"
+  --max-lora-rank "${MAX_LORA_RANK}"
+  --enable-prefix-caching
+  --max-model-len "${MAX_MODEL_LEN}"
+  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}"
+  --trust-remote-code
   "${LORAS[@]}"
+)
+
+if command -v vllm >/dev/null 2>&1; then
+  exec vllm serve "${BASE_MODEL}" "${COMMON[@]}"
+fi
+
+if python -c "import vllm.entrypoints.cli.main" >/dev/null 2>&1; then
+  exec python -m vllm.entrypoints.cli.main serve "${BASE_MODEL}" "${COMMON[@]}"
+fi
+
+exec python -m vllm.entrypoints.openai.api_server \
+  --model "${BASE_MODEL}" \
+  "${COMMON[@]}"

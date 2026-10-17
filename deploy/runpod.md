@@ -33,9 +33,21 @@ bash scripts/train_all.sh
 
 Training does **not** install `vllm` (serve via the Docker image instead). For the offline multi-LoRA script on the same pod, install vLLM separately only when you need it.
 
-## 2. Serve pod
+## 2. Serve (same pod is fine; Docker optional)
 
-Build and run the vLLM image with adapters mounted:
+### No Docker (common on RunPod templates)
+
+```bash
+cd /workspace/LoRA_Kitchen
+git pull
+bash scripts/install_vllm_pod.sh
+export ADAPTER_ROOT=/workspace/LoRA_Kitchen/adapters
+bash docker/serve.sh
+```
+
+If `pip install vllm` dies on `Cannot uninstall PyJWT`, that is a Debian package conflict. The install script uses `--ignore-installed`.
+
+### With Docker (if available)
 
 ```bash
 docker build -f docker/Dockerfile -t lora-kitchen-vllm .
