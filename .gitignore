@@ -7,13 +7,16 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .DS_Store
-adapters/*/
+adapters/**/checkpoint-*/
 !adapters/README.md
+!adapters/*/adapter_config.json
+!adapters/*/adapter_model.safetensors
 results/*
 !results/.gitkeep
 *.pt
 *.bin
 *.safetensors
+!adapters/*/adapter_model.safetensors
 .cache/
 wandb/
 outputs/
