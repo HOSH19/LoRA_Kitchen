@@ -1,0 +1,14 @@
+persona: butter
+base_model: Qwen/Qwen2.5-7B-Instruct
+output_dir: adapters/butter
+train_file: data/butter/train.jsonl
+eval_file: data/butter/eval.jsonl
+max_steps: 120
+learning_rate: 0.0002
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+batch_size: 1
+grad_accum: 8
+max_seq_len: 1536
+load_in_4bit: true
